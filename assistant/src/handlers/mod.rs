@@ -1,6 +1,8 @@
 use crate::messages::{Message, MessageTopic};
+use crate::State;
+use crate::models::infer;
 
-pub fn handle_message(message: Message) {
+pub fn handle_message(state: &mut State, message: Message) {
     match message.topic {
         MessageTopic::Unknown => {
             println!("Unknown Topic");
@@ -10,7 +12,16 @@ pub fn handle_message(message: Message) {
             std::process::exit(0);
         }
         MessageTopic::Prompt => {
-            println!("Prompt");
+            let prompt = String::from_utf8(message.payload.to_vec());
+            match prompt {
+                Ok(prompt) => {
+                    println!("Prompt: {}", prompt);
+                    infer(state.model.as_ref(), &mut state.session, prompt);
+                }
+                Err(e) => {
+                    println!("Prompt Error: {}", e);
+                }
+            }
         }
         MessageTopic::Echo => {
             let payload = String::from_utf8(message.payload.to_vec()).unwrap_or("{}".to_string());

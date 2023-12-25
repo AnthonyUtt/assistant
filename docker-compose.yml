@@ -10,6 +10,11 @@ services:
       - mqtt
     networks:
       - mqtt
+    environment:
+      - TOPIC_NAMESPACE=${TOPIC_NAMESPACE}
+      - MQTT_HOST=${MQTT_HOST}
+      - MQTT_PORT=${MQTT_PORT}
+      - LLM_MODEL=${LLM_MODEL}
 
   mqtt:
     restart: unless-stopped

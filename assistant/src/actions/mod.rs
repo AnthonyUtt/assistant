@@ -1,3 +1,3 @@
-pub fn _foo() {
-    unimplemented!();
+pub fn handle_response(response: String) {
+    println!("{}", response);
 }

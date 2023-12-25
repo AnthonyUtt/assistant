@@ -9,7 +9,9 @@ pub async fn init() -> (AsyncClient, EventLoop) {
     let topic = format!("{}/#", topic_namespace);
 
     // Create MQTT client named assistant
-    let mut mqtt_options = MqttOptions::new("assistant", "mqtt", 1883);
+    let mqtt_host = env::var("MQTT_HOST").unwrap_or("mqtt".to_string());
+    let mqtt_port = env::var("MQTT_PORT").unwrap_or("1883".to_string());
+    let mut mqtt_options = MqttOptions::new("assistant", mqtt_host, mqtt_port.parse::<u16>().unwrap_or(1883));
     mqtt_options.set_keep_alive(Duration::from_secs(10));
 
     // Connect to MQTT broker

@@ -11,3 +11,5 @@ rumqttc = "*"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0"
 bytes = "1"
+llm = { git = "https://github.com/rustformers/llm" , branch = "main" }
+rand = "0.8"
