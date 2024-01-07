@@ -1,6 +1,6 @@
 use crate::messages::{Message, MessageTopic};
 use crate::State;
-use crate::models::infer;
+use crate::models::infer_async;
 
 pub fn handle_message(state: &mut State, message: Message) {
     match message.topic {
@@ -16,7 +16,7 @@ pub fn handle_message(state: &mut State, message: Message) {
             match prompt {
                 Ok(prompt) => {
                     println!("Prompt: {}", prompt);
-                    infer(state.model.as_ref(), &mut state.session, prompt);
+                    infer_async(prompt);
                 }
                 Err(e) => {
                     println!("Prompt Error: {}", e);
