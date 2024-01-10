@@ -1,29 +1,22 @@
 use llm::{Model, InferenceSession};
 use std::error::Error;
 use std::env;
-use flume::Sender;
+use std::sync::mpsc;
 use crate::actions;
-use crate::messaging::{Message, MessageBus};
 
 mod llama_2_7b_chat_ggml;
 mod llama_2_13b_chat_ggml;
+mod gpt4_x_vicuna_13b_ggml;
 
-pub fn initialize(bus: &mut MessageBus) {
-    let inference_model = InferenceModel::new();
-
-    loop {
-        todo!();
-    }
-}
-
-struct InferenceModel {
+pub struct InferenceModel {
     pub model: Box<dyn Model>,
     pub session: InferenceSession,
     response_string: String,
+    tx: mpsc::Sender<String>,
 }
 
 impl InferenceModel {
-    pub fn new() {
+    pub fn new(tx: mpsc::Sender<String>) -> Self {
         let model_file: String = get_model_filename();
         let model = llm::load_dynamic(
             Some(llm::ModelArchitecture::Llama),
@@ -47,12 +40,13 @@ impl InferenceModel {
             model,
             session,
             response_string: String::new(),
+            tx,
         }
     }
 
     pub fn infer(&mut self, prompt: String) -> Result<(), Box<dyn Error>> {
-        let response = session.infer::<std::convert::Infallible>(
-            model,
+        let response = self.session.infer::<std::convert::Infallible>(
+            self.model.as_ref(),
             // RNG provider
             &mut rand::thread_rng(),
             // the prompt to use for generation, as well as other
@@ -76,7 +70,7 @@ impl InferenceModel {
                     }
                     llm::InferenceResponse::PromptToken(token) => {
                         println!("PromptToken: {}", token);
-                        response_string.push_str(token);
+                        self.response_string.push_str(token.as_str());
                         Ok(llm::InferenceFeedback::Continue)
                     }
                     llm::InferenceResponse::InferredToken(result) => {
@@ -110,6 +104,7 @@ fn get_model_filename() -> String {
     match model_file.as_str() {
         "llama-2-7b-chat-ggml" => llama_2_7b_chat_ggml::FILENAME.to_string(),
         "llama-2-13b-chat-ggml" => llama_2_13b_chat_ggml::FILENAME.to_string(),
+        "gpt4-x-vicuna-13b-ggml" => gpt4_x_vicuna_13b_ggml::FILENAME.to_string(),
         _ => panic!("Unknown model file: {}", model_file)
     }
 }
@@ -120,6 +115,7 @@ fn get_prompt(prompt: String) -> String {
     match model_file.as_str() {
         "llama-2-7b-chat-ggml" => llama_2_7b_chat_ggml::get_prompt(prompt),
         "llama-2-13b-chat-ggml" => llama_2_13b_chat_ggml::get_prompt(prompt),
+        "gpt4-x-vicuna-13b-ggml" => gpt4_x_vicuna_13b_ggml::get_prompt(prompt),
         _ => panic!("Unknown model file: {}", model_file)
     }
 }
